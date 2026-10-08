@@ -1,0 +1,27 @@
+# Secrets et données
+secrets/
+*.env
+mailu.env
+*.key
+*.pem
+certs/
+data/
+comptes-admin-client.txt
+admin-credentials.txt
+backup-avant-*/
+
+# Clé de test seulement : signe les mails du domaine fictif legitime.test (zone DNS du lab)
+!triage/tests/dkim/legitime.test.lab.key
+
+# Documents : seule la documentation du README est publiée
+docs/
+*.pdf
+
+# Corpus et résultats détaillés
+triage/evaluation/corpus/*
+*.jsonl
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/

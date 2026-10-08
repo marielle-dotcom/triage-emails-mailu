@@ -1,0 +1,31 @@
+--- app/server.py
++++ app/server.py
+@@ -9,6 +9,7 @@
+ lecture des verdicts natifs (SPF, DKIM, DMARC, antivirus, spam), journalisés.
+ Étape 3a : filtres Python, score sur 9, niveau N0 à N4 et ajout des en-têtes
+ X-Risk-Level, X-Phishing-Score, X-Detection-Type, X-Warning-Banner.
++Étape 3b : les 6 filtres et le déclencheur direct « usurpation d'un dirigeant ».
+ 
+ Règles de réponse (document d'architecture, §2.1) :
+ - 250 seulement après réinjection réussie ;
+@@ -29,6 +30,7 @@
+ from aiosmtpd.controller import Controller
+ 
+ import filtres
++from filtres import dirigeant
+ from headers import ajouter_entetes, parse_headers, strip_headers
+ from message import lire_message
+ from referentiels import charger
+@@ -121,8 +123,11 @@
+             hdrs = parse_headers(content)
+             fields["message_id"] = str(hdrs.get("Message-ID", "")).strip()
+             fields["header_from"] = str(hdrs.get("From", "")).strip()
+-            resultats = filtres.executer(lire_message(content), self.referentiels)
++            message = lire_message(content)
++            resultats = filtres.executer(message, self.referentiels)
+             declencheurs = ["virus"] if verdicts.virus else []
++            if dirigeant.declenche(message, resultats, self.referentiels):
++                declencheurs.append(dirigeant.NOM)
+             decision = decider(verdicts, resultats, declencheurs)
+             content = ajouter_entetes(content, decision.entetes())
+         except Exception:

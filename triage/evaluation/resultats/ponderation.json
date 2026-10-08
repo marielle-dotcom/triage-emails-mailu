@@ -1,0 +1,63 @@
+{
+  "poids_appris": {
+    "typosquatting": 1.22,
+    "recent_domain": 1.22,
+    "urgency_keywords": 4.5,
+    "masked_links": 2.79,
+    "suspicious_attachment": 4.31,
+    "display_name_mismatch": 3.97
+  },
+  "poids_proposes": {
+    "spf": 1,
+    "dkim": 1,
+    "dmarc": 1,
+    "typosquatting": 3,
+    "recent_domain": 3,
+    "urgency_keywords": 3,
+    "masked_links": 3,
+    "suspicious_attachment": 3,
+    "display_name_mismatch": 3
+  },
+  "seuils_proposes": {
+    "N1": 1,
+    "N2": 3,
+    "N3": 6,
+    "N4": 9
+  },
+  "calibrage/legitime": {
+    "N0": 96.94,
+    "N1": 0.0,
+    "N2": 2.39,
+    "N3": 0.67,
+    "N4": 0.0,
+    "n2_plus": 3.06,
+    "n3_plus": 0.67
+  },
+  "calibrage/phishing": {
+    "N0": 18.96,
+    "N1": 2.59,
+    "N2": 30.47,
+    "N3": 39.55,
+    "N4": 8.43,
+    "n2_plus": 78.44,
+    "n3_plus": 47.97
+  },
+  "test/legitime": {
+    "N0": 97.47,
+    "N1": 0.0,
+    "N2": 1.99,
+    "N3": 0.53,
+    "N4": 0.0,
+    "n2_plus": 2.53,
+    "n3_plus": 0.53
+  },
+  "test/phishing": {
+    "N0": 27.1,
+    "N1": 3.87,
+    "N2": 35.48,
+    "N3": 29.03,
+    "N4": 4.52,
+    "n2_plus": 69.03,
+    "n3_plus": 33.55
+  }
+}

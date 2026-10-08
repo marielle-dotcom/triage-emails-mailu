@@ -1,0 +1,8 @@
+# Filtre « extension suspecte » : 1 point si une pièce jointe (ou un fichier
+# listé dans une archive zip) porte une de ces extensions, ou une double
+# extension trompeuse (ex. facture.pdf.exe).
+dangereuses: [exe, scr, com, pif, bat, cmd, js, jse, vbs, vbe, wsf, wsh, hta, ps1,
+              msi, msp, jar, lnk, iso, img, vhd, reg, cpl, dll, chm, html, htm, svg,
+              shtml, xhtml, mht, mhtml]  # étape 6 : variantes HTML vues dans le corpus
+leurres: [pdf, doc, docx, xls, xlsx, ppt, pptx, txt, jpg, jpeg, png, zip]
+archives: [zip]

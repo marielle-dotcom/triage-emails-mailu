@@ -1,0 +1,17 @@
+# Filtre « liens masqués » : un lien vers l'un de ces domaines compte comme masqué
+# (raccourcisseurs ; depuis l'étape 6, passerelles IPFS et redirecteurs, qui cachent
+# la vraie destination : 15 % des phishing du jeu de calibrage).
+domaines: [bit.ly, tinyurl.com, t.co, goo.gl, ow.ly, is.gd, buff.ly, cutt.ly,
+           rebrand.ly, shorturl.at, tiny.cc, rb.gy, s.id, lnkd.in]
+# Étape 6 : passerelles IPFS et redirecteurs observés dans le jeu de calibrage
+ipfs: [ipfs.io, cloudflare-ipfs.com, dweb.link, gateway.pinata.cloud, ipfs.w3s.link, nftstorage.link, googleweblight.com]
+# Scénario A (2026-10-04) : hébergeurs gratuits de pages web, où n'importe qui publie une
+# fausse page de connexion sans vérification. Volontairement exclus : les réseaux de
+# diffusion de contenu (amazonaws, cloudfront, googleapis…) où les newsletters légitimes
+# chargent leurs images, et les outils de formulaires (typeform, jotform…) utilisés par
+# de vraies entreprises.
+hebergeurs: [pages.dev, workers.dev, r2.dev, web.app, firebaseapp.com, glitch.me, herokuapp.com,
+             vercel.app, netlify.app, github.io, 000webhostapp.com, repl.co, replit.app,
+             onrender.com, fly.dev, surge.sh, weebly.com, weeblysite.com, wixsite.com,
+             webflow.io, square.site, canva.site, framer.website, azurewebsites.net,
+             trycloudflare.com, ngrok.io, ngrok-free.app, sites.google.com, forms.gle]

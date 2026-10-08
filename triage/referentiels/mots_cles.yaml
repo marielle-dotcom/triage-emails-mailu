@@ -1,0 +1,71 @@
+# Filtre « mots-clés d'urgence » : 1 point si au moins `seuil` expressions différentes
+# sont trouvées dans l'objet ou le texte du message.
+seuil: 2
+expressions:
+  # Français
+  - virement
+  - urgent
+  - compte suspendu
+  - compte bloque
+  - verifiez votre compte
+  - verifier vos identifiants
+  - mot de passe expire
+  - confirmer votre identite
+  - action immediate
+  - dans les 24 heures
+  - facture impayee
+  - paiement en attente
+  - coordonnees bancaires
+  - cliquez ici
+  - strictement confidentiel
+  # Anglais
+  - wire transfer
+  - account suspended
+  - verify your account
+  - password expired
+  - click here
+  - immediately
+  - invoice overdue
+  # --- Étape 6 : ajouts validés sur le jeu de calibrage (phishing 2023-2024 / légitimes
+  #     SpamAssassin) : chaque expression touche au plus 0,1 % des mails légitimes.
+  - kindly
+  - dear customer
+  - valued customer
+  - the button below
+  - your mailbox
+  - email account
+  - verify your
+  - verify now
+  - confirm your
+  - update your
+  - action required
+  - same password
+  - current password
+  - password expires
+  - account will be
+  - suspended
+  - unusual activity
+  - secure your
+  - failure to
+  - deactivation
+  - undelivered
+  - pending messages
+  - shared a file
+  - has shared
+  - review document
+  - invoice
+  # --- Étape 6 : équivalents français (non mesurables sur les corpus publics, anglophones)
+  - cher client
+  - votre boite mail
+  - boite de reception pleine
+  - verifiez votre
+  - confirmez votre
+  - mettez a jour
+  - action requise
+  - mot de passe actuel
+  - votre mot de passe expire
+  - votre compte sera
+  - activite inhabituelle
+  - messages en attente
+  - a partage un fichier
+  - document partage

@@ -1,0 +1,10 @@
+# Tableaux de bord versionnés dans le projet (triage/grafana/dashboards/).
+apiVersion: 1
+providers:
+  - name: triage
+    folder: Système de triage
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana-dashboards

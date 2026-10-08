@@ -1,0 +1,8 @@
+# Fichiers exclus de l image du filtre
+**/__pycache__
+tests/
+secrets/
+db/
+grafana/
+ui/
+outils/

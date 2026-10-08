@@ -1,0 +1,103 @@
+--- app/server.py
++++ app/server.py
+@@ -10,7 +10,10 @@
+ Étape 3a : filtres Python, score sur 9, niveau N0 à N4 et ajout des en-têtes
+ X-Risk-Level, X-Phishing-Score, X-Detection-Type, X-Warning-Banner.
+ Étape 3b : les 6 filtres et le déclencheur direct « usurpation d'un dirigeant ».
+-Étape 4 : N3/N4 réinjectés vers la boîte de quarantaine + alerte à l'équipe sécurité.
++Étape 4 : actions par niveau ; alerte à l'équipe sécurité pour N3/N4.
++Étape 5 : N3/N4 conservés dans le stockage de quarantaine séparé (plus de
++réinjection), chaque décision enregistrée dans PostgreSQL sans jamais bloquer
++le courrier (fichier d'attente rejoué si la base est indisponible).
+ 
+ Règles de réponse (document d'architecture, §2.1) :
+ - 250 seulement après réinjection réussie ;
+@@ -32,6 +35,8 @@
+ 
+ import actions
+ import filtres
++import journal
++import quarantaine
+ from filtres import dirigeant
+ from headers import ajouter_entetes, parse_headers, strip_headers
+ from message import lire_message
+@@ -137,8 +142,8 @@
+             if dirigeant.declenche(message, resultats, self.referentiels):
+                 declencheurs.append(dirigeant.NOM)
+             decision = decider(verdicts, resultats, declencheurs)
+-            rcpts, entetes_action = actions.destinataires(decision, envelope.rcpt_tos)
+-            content = ajouter_entetes(content, {**decision.entetes(), **entetes_action})
++            content = ajouter_entetes(content, {**decision.entetes(),
++                                                **actions.entetes_action(decision, envelope.rcpt_tos)})
+         except Exception:
+             log.exception("analyse échouée, 451", extra={"fields": fields})
+             return "451 4.3.0 Triage temporarily unavailable, try again later"
+@@ -147,19 +152,28 @@
+         fields["filters"] = {r.nom: r.raison for r in resultats if r.declenche}
+         fields["decision"] = {"score": decision.score, "level": decision.niveau,
+                               "detections": decision.detections, "banner": decision.bandeau}
+-        fields["action"] = "quarantine" if actions.en_quarantaine(decision) else "deliver"
+-        fields["delivered_to"] = rcpts
+-        try:
+-            refused = await asyncio.to_thread(reinject, envelope, content, rcpts)
+-        except Exception:
+-            log.exception("réinjection échouée, 451", extra={"fields": fields})
+-            return "451 4.3.0 Triage temporarily unavailable, try again later"
+-        if refused:
+-            # Un destinataire refusé à la réinjection : on demande à Postfix de
+-            # réessayer plutôt que de perdre le message.
+-            fields["refused"] = {k: [v[0], v[1].decode(errors="replace")] for k, v in refused.items()}
+-            log.error("destinataire refusé à la réinjection, 451", extra={"fields": fields})
+-            return "451 4.3.0 Reinjection partially refused, try again later"
++        fields["action"] = actions.libelle_action(decision)
++        sha256 = None
++        if actions.en_quarantaine(decision):
++            # 250 seulement après un stockage réussi (§2.1) ; sinon Postfix réessaie.
++            try:
++                sha256 = await asyncio.to_thread(quarantaine.stocker, triage_id, content)
++            except Exception:
++                log.exception("mise en quarantaine échouée, 451", extra={"fields": fields})
++                return "451 4.3.0 Triage temporarily unavailable, try again later"
++            fields["quarantine_sha256"] = sha256
++        else:
++            try:
++                refused = await asyncio.to_thread(reinject, envelope, content, envelope.rcpt_tos)
++            except Exception:
++                log.exception("réinjection échouée, 451", extra={"fields": fields})
++                return "451 4.3.0 Triage temporarily unavailable, try again later"
++            if refused:
++                # Un destinataire refusé à la réinjection : on demande à Postfix de
++                # réessayer plutôt que de perdre le message.
++                fields["refused"] = {k: [v[0], v[1].decode(errors="replace")] for k, v in refused.items()}
++                log.error("destinataire refusé à la réinjection, 451", extra={"fields": fields})
++                return "451 4.3.0 Reinjection partially refused, try again later"
+         if actions.en_quarantaine(decision):
+             # L'alerte ne conditionne jamais la quarantaine : un échec est journalisé.
+             try:
+@@ -168,12 +182,25 @@
+             except Exception:
+                 fields["alert_sent"] = False
+                 log.exception("alerte non envoyée", extra={"fields": {"triage_id": triage_id}})
+-        log.info("message réinjecté", extra={"fields": fields})
++        enregistrement = {
++            "triage_id": triage_id, "message_id": fields["message_id"],
++            "expediteur_affiche": fields["header_from"], "domaine_expediteur": message.domaine,
++            "enveloppe_expediteur": envelope.mail_from, "destinataire": ", ".join(envelope.rcpt_tos),
++            "spf": verdicts.spf, "dkim": verdicts.dkim, "dmarc": verdicts.dmarc, "spam_bar": verdicts.spam_bar,
++            "score": decision.score, "niveau": decision.niveau, "detections": decision.detections,
++            "raisons": fields["filters"], "declencheur_direct": decision.declencheur_direct or None,
++            "action": fields["action"], "etat": "en_attente" if sha256 else "sans_objet",
++            "fichier_sha256": sha256, "taille": len(content),
++        }
++        fields["db"] = await asyncio.to_thread(journal.enregistrer, enregistrement)
++        log.info("message mis en quarantaine" if sha256 else "message réinjecté", extra={"fields": fields})
+         return "250 2.0.0 OK triage " + triage_id
+ 
+ 
+ def main():
+     setup_logging()
++    journal.rejouer()
++    journal.demarrer_rejeu()
+     handler = TriageHandler()
+     controller = Controller(
+         handler,

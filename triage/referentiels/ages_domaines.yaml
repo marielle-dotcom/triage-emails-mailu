@@ -1,0 +1,10 @@
+# Âge des domaines (le lab n'a pas accès au WHOIS). Valeur = date de création
+# (AAAA-MM-JJ) ou nombre de jours (âge fixe, pratique pour les tests du lab).
+# Domaine absent = âge inconnu = 0 point.
+seuil_jours: 30
+domaines:
+  legitime.test: 2015-03-01
+  banque-partenaire.test: 2009-06-15
+  usurpe.test: 2021-01-10
+  nouveau-service.test: 5
+  legitlme.test: 3

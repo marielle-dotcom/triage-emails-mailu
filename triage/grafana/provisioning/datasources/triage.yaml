@@ -1,0 +1,18 @@
+# Source de données : base des décisions, compte en lecture seule.
+apiVersion: 1
+datasources:
+  - name: Triage
+    uid: triage-pg
+    type: grafana-postgresql-datasource
+    access: proxy
+    url: triage-db:5432
+    user: triage_lecture
+    isDefault: true
+    editable: false
+    jsonData:
+      database: triage
+      sslmode: disable
+      postgresVersion: 1700
+      timescaledb: false
+    secureJsonData:
+      password: $TRIAGE_DB_LECTURE_PASSWORD

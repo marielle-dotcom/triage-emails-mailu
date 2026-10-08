@@ -1,0 +1,603 @@
+{
+  "uid": "triage",
+  "title": "Système de triage des emails",
+  "tags": [
+    "triage"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "1m",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Messages analysés",
+      "description": "Messages entrants traités par le filtre sur la période.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "triage-pg"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "triage-pg"
+          },
+          "rawSql": "SELECT count(*) AS \"messages\" FROM decisions WHERE $__timeFilter(recu_le)",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Classés Suspect (N2)",
+      "description": "Messages livrés dans le dossier Suspect sur la période.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "triage-pg"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "triage-pg"
+          },
+          "rawSql": "SELECT count(*) FROM decisions WHERE $__timeFilter(recu_le) AND niveau = 2",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Mis en quarantaine (N3, N4)",
+      "description": "Messages retenus dans le stockage de quarantaine sur la période.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "triage-pg"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "triage-pg"
+          },
+          "rawSql": "SELECT count(*) FROM decisions WHERE $__timeFilter(recu_le) AND action = 'quarantaine'",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Quarantaines à valider",
+      "description": "Quarantaines en attente de décision de l'équipe sécurité (toutes dates).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "triage-pg"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "triage-pg"
+          },
+          "rawSql": "SELECT count(*) FROM decisions WHERE action = 'quarantaine' AND etat = 'en_attente'",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Messages par niveau de criticité et par jour",
+      "description": "Nombre de messages par jour, empilés par niveau (N0 clair à N4 foncé).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "triage-pg"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "triage-pg"
+          },
+          "rawSql": "SELECT $__timeGroupAlias(recu_le, '1d'), count(*) FILTER (WHERE niveau = 0) AS \"N0 Sain\", count(*) FILTER (WHERE niveau = 1) AS \"N1 Faible\", count(*) FILTER (WHERE niveau = 2) AS \"N2 Moyen\", count(*) FILTER (WHERE niveau = 3) AS \"N3 Élevé\", count(*) FILTER (WHERE niveau = 4) AS \"N4 Critique\" FROM decisions WHERE $__timeFilter(recu_le) GROUP BY 1 ORDER BY 1",
+          "format": "time_series",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "lineWidth": 1,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "showPoints": "never",
+            "axisSoftMin": 0,
+            "gradientMode": "none"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "N0 Sain"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#86b6ef"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "N1 Faible"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5598e7"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "N2 Moyen"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#2a78d6"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "N3 Élevé"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#1c5cab"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "N4 Critique"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#104281"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "barchart",
+      "title": "Filtres les plus déclenchés",
+      "description": "Nombre de messages où chaque filtre (ou déclencheur direct) s'est déclenché.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "triage-pg"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "triage-pg"
+          },
+          "rawSql": "SELECT CASE d WHEN 'spf' THEN 'Échec SPF' WHEN 'dkim' THEN 'Échec DKIM' WHEN 'dmarc' THEN 'Échec DMARC' WHEN 'typosquatting' THEN 'Typosquatting' WHEN 'recent_domain' THEN 'Domaine récent' WHEN 'urgency_keywords' THEN 'Mots-clés d''urgence' WHEN 'masked_links' THEN 'Liens masqués' WHEN 'suspicious_attachment' THEN 'Pièce jointe suspecte' WHEN 'display_name_mismatch' THEN 'Nom affiché incohérent' WHEN 'ceo_fraud' THEN 'Usurpation de dirigeant (N4 direct)' WHEN 'virus' THEN 'Virus (N4 direct)' ELSE d END AS \"filtre\", count(*) AS \"messages\" FROM decisions, unnest(detections) AS d WHERE $__timeFilter(recu_le) GROUP BY d ORDER BY 2 DESC LIMIT 12",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2a78d6"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "custom": {
+            "fillOpacity": 100,
+            "lineWidth": 0,
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "filtre",
+        "showValue": "always",
+        "barWidth": 0.6,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "text": {
+          "valueSize": 12
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "barchart",
+      "title": "Échecs d'authentification",
+      "description": "Messages en échec SPF, DKIM ou DMARC selon Rspamd (verdicts natifs).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "triage-pg"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "triage-pg"
+          },
+          "rawSql": "SELECT 'SPF' AS \"contrôle\", count(*) FILTER (WHERE spf = 'fail') AS \"échecs\" FROM decisions WHERE $__timeFilter(recu_le) UNION ALL SELECT 'DKIM', count(*) FILTER (WHERE dkim = 'fail') FROM decisions WHERE $__timeFilter(recu_le) UNION ALL SELECT 'DMARC', count(*) FILTER (WHERE dmarc = 'fail') FROM decisions WHERE $__timeFilter(recu_le)",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2a78d6"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "custom": {
+            "fillOpacity": 100,
+            "lineWidth": 0,
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "contrôle",
+        "showValue": "always",
+        "barWidth": 0.6,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "text": {
+          "valueSize": 12
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Quarantaines à valider",
+      "description": "Cliquer sur l'identifiant ouvre le message dans l'outil de quarantaine (127.0.0.1:8088).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "triage-pg"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "triage-pg"
+          },
+          "rawSql": "SELECT triage_id AS \"identifiant\", recu_le AS \"reçu le\", 'N' || niveau AS \"niveau\", score || '/9' AS \"score\", expediteur_affiche AS \"expéditeur affiché\", destinataire, array_to_string(detections, ', ') AS \"détections\" FROM decisions WHERE action = 'quarantaine' AND etat = 'en_attente' ORDER BY recu_le DESC LIMIT 100",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "identifiant"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Ouvrir dans l'outil de quarantaine",
+                    "url": "http://127.0.0.1:8088/quarantaine/${__value.raw}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "Domaines expéditeurs à risque (N2 et plus)",
+      "description": "Domaines d'expédition des messages classés N2 à N4 sur la période.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "triage-pg"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "triage-pg"
+          },
+          "rawSql": "SELECT domaine_expediteur AS \"domaine\", count(*) AS \"messages\", 'N' || max(niveau) AS \"niveau max\", max(recu_le) AS \"dernier message\" FROM decisions WHERE $__timeFilter(recu_le) AND niveau >= 2 GROUP BY domaine_expediteur ORDER BY max(niveau) DESC, count(*) DESC LIMIT 20",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    }
+  ],
+  "description": "Activité du filtre de triage : volumes par niveau, filtres déclenchés, quarantaines à valider."
+}

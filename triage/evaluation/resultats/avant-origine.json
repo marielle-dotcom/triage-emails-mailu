@@ -1,0 +1,140 @@
+{
+  "calibrage/legitime": {
+    "messages": 2091,
+    "erreurs": 0,
+    "niveaux_pct": {
+      "N0": 96.6,
+      "N1": 3.4,
+      "N2": 0.0,
+      "N3": 0.0,
+      "N4": 0.0
+    },
+    "n2_et_plus_pct": 0.0,
+    "n3_et_plus_pct": 0.0,
+    "filtres_pct": {
+      "typosquatting": 0.0,
+      "recent_domain": 0.0,
+      "urgency_keywords": 0.19,
+      "masked_links": 2.49,
+      "suspicious_attachment": 0.0,
+      "display_name_mismatch": 1.34,
+      "ceo_fraud": 0.0
+    }
+  },
+  "calibrage/phishing": {
+    "messages": 614,
+    "erreurs": 3,
+    "niveaux_pct": {
+      "N0": 42.35,
+      "N1": 57.0,
+      "N2": 0.65,
+      "N3": 0.0,
+      "N4": 0.0
+    },
+    "n2_et_plus_pct": 0.65,
+    "n3_et_plus_pct": 0.0,
+    "filtres_pct": {
+      "typosquatting": 0.0,
+      "recent_domain": 0.0,
+      "urgency_keywords": 1.14,
+      "masked_links": 25.73,
+      "suspicious_attachment": 2.61,
+      "display_name_mismatch": 29.64,
+      "ceo_fraud": 0.0
+    }
+  },
+  "test/legitime": {
+    "messages": 2058,
+    "erreurs": 1,
+    "niveaux_pct": {
+      "N0": 97.38,
+      "N1": 2.62,
+      "N2": 0.0,
+      "N3": 0.0,
+      "N4": 0.0
+    },
+    "n2_et_plus_pct": 0.0,
+    "n3_et_plus_pct": 0.0,
+    "filtres_pct": {
+      "typosquatting": 0.0,
+      "recent_domain": 0.0,
+      "urgency_keywords": 0.15,
+      "masked_links": 1.94,
+      "suspicious_attachment": 0.05,
+      "display_name_mismatch": 1.02,
+      "ceo_fraud": 0.0
+    }
+  },
+  "test/phishing": {
+    "messages": 155,
+    "erreurs": 0,
+    "niveaux_pct": {
+      "N0": 45.16,
+      "N1": 54.19,
+      "N2": 0.65,
+      "N3": 0.0,
+      "N4": 0.0
+    },
+    "n2_et_plus_pct": 0.65,
+    "n3_et_plus_pct": 0.0,
+    "filtres_pct": {
+      "typosquatting": 0.0,
+      "recent_domain": 0.0,
+      "urgency_keywords": 2.58,
+      "masked_links": 10.32,
+      "suspicious_attachment": 7.1,
+      "display_name_mismatch": 34.84,
+      "ceo_fraud": 0.0
+    }
+  },
+  "temps_ms": {
+    "mediane": 2.04,
+    "p95": 6.2,
+    "max": 89.66,
+    "messages": 4922
+  },
+  "grilles": [
+    {
+      "grille": "actuelle (1/3/5/7)",
+      "legitime_n2_plus_pct": 0.0,
+      "legitime_n3_plus_pct": 0.0,
+      "phishing_n2_plus_pct": 0.65,
+      "phishing_n3_plus_pct": 0.0
+    },
+    {
+      "grille": "abaissée (1/2/4/6)",
+      "legitime_n2_plus_pct": 0.53,
+      "legitime_n3_plus_pct": 0.0,
+      "phishing_n2_plus_pct": 9.68,
+      "phishing_n3_plus_pct": 0.0
+    },
+    {
+      "grille": "N2 à 2 (1/2/5/7)",
+      "legitime_n2_plus_pct": 0.53,
+      "legitime_n3_plus_pct": 0.0,
+      "phishing_n2_plus_pct": 9.68,
+      "phishing_n3_plus_pct": 0.0
+    },
+    {
+      "grille": "relevée (1/3/6/8)",
+      "legitime_n2_plus_pct": 0.0,
+      "legitime_n3_plus_pct": 0.0,
+      "phishing_n2_plus_pct": 0.65,
+      "phishing_n3_plus_pct": 0.0
+    }
+  ],
+  "poids_proposes": {
+    "typosquatting": 1.22,
+    "recent_domain": 1.22,
+    "urgency_keywords": 1.69,
+    "masked_links": 2.32,
+    "suspicious_attachment": 4.06,
+    "display_name_mismatch": 3.07
+  },
+  "duree_totale_s": 13.7,
+  "options": {
+    "app": "/home/kali/system/backup-avant-etape5/triage/app",
+    "natifs": "origine",
+    "transposition": true
+  }
+}

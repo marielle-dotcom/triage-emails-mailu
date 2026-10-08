@@ -1,0 +1,48 @@
+# Organisations à protéger (domaines fictifs du lab, plus deux marques réelles
+# souvent imitées). Utilisé par :
+# - « typosquatting » : un domaine proche d'un de ces domaines sans en être un ;
+# - « nom affiché » : un nom affiché citant une organisation dont le domaine
+#   d'envoi n'est pas l'un des siens.
+domaines_internes: [anac.lab]
+organisations:
+  - nom: ANAC
+    # Étape 6 : intitulés d'équipe informatique (usurpation de notre propre service,
+    # « boîte pleine », « mot de passe expiré ») ; 0 % des légitimes du jeu de calibrage.
+    # Exclus volontairement : « support » seul et « mail delivery » (vrais fournisseurs,
+    # vrais messages d'erreur de distribution).
+    alias: [anac, webmail, server admin, cpanel, helpdesk, it support, mail server, email server,
+            system administrator, webmail administrator, mail administrator, email administrator,
+            administrateur messagerie, administrateur systeme, service informatique, support informatique]
+    domaines: [anac.lab]
+  - nom: Légitime Services
+    alias: [legitime, legitime services]
+    domaines: [legitime.test]
+  - nom: Banque Partenaire
+    alias: [banque partenaire]
+    domaines: [banque-partenaire.test]
+  - nom: PayPal
+    alias: [paypal]
+    domaines: [paypal.com, paypal.fr]
+  - nom: Microsoft
+    alias: [microsoft, office 365, outlook]
+    domaines: [microsoft.com, office.com, outlook.com, live.com]
+  # Étape 6 : marques fréquemment imitées dans le jeu de calibrage
+  - nom: DocuSign
+    alias: [docusign]
+    domaines: [docusign.com, docusign.net]
+  - nom: WeTransfer
+    alias: [wetransfer]
+    domaines: [wetransfer.com, we.tl]
+  - nom: MetaMask
+    alias: [metamask]
+    domaines: [metamask.io]
+  - nom: DHL
+    alias: [dhl]
+    domaines: [dhl.com, dhl.fr, dhl.de, dpdhl.com]
+  - nom: Netflix
+    alias: [netflix]
+    domaines: [netflix.com]
+  - nom: Google
+    # Sans gmail.com : la distance d'édition signalerait à tort des fournisseurs légitimes (mail.com).
+    alias: [google]
+    domaines: [google.com, google.fr]

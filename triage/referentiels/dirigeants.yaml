@@ -1,0 +1,9 @@
+# Dirigeants (noms fictifs du lab). Un nom affiché correspondant à l'un d'eux,
+# envoyé depuis un domaine externe :
+# - avec un indice fort (domaine typosquatté ou récent) → déclencheur direct N4 ;
+# - sans indice fort → compte seulement dans le filtre « nom affiché ».
+dirigeants:
+  - nom: Marie Durand
+    fonction: Directrice générale
+  - nom: Paul Martin
+    fonction: Directeur administratif et financier

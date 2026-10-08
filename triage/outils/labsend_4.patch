@@ -1,0 +1,48 @@
+--- tests/labsend.py
++++ tests/labsend.py
+@@ -67,15 +67,37 @@
+     return (out.stdout or out.stderr).decode(errors="replace").strip()
+ 
+ 
++QUARANTAINE = "quarantaine@anac.lab"
++
++
++def locate(mailbox, marker):
++    """[(dossier, contenu brut)] des messages contenant `marker` destinés à `mailbox`.
++
++    Cherche dans tous les dossiers de la boîte (INBOX, Suspect…) et, depuis
++    l'étape 4, dans la boîte de quarantaine (dossiers N3/N4) les messages dont
++    X-Original-Recipient est `mailbox`.
++    """
++    script = (
++        f"for f in $(find /mail/{mailbox} /mail/{QUARANTAINE} -type f \\( -path '*/cur/*' -o -path '*/new/*' \\) "
++        f"2>/dev/null); do grep -l '{marker}' \"$f\"; done 2>/dev/null"
++    )
++    files = subprocess.run(["docker", "exec", "mailu-imap-1", "sh", "-c", script],
++                           capture_output=True, text=True).stdout.split()
++    found = []
++    for f in files:
++        raw = subprocess.run(["docker", "exec", "mailu-imap-1", "cat", f], capture_output=True).stdout
++        in_quarantine = f.startswith(f"/mail/{QUARANTAINE}/")
++        if in_quarantine and f"X-Original-Recipient: {mailbox}".encode() not in raw.split(b"\n\n", 1)[0]:
++            continue
++        sub = f.split("/")[3]  # /mail/<boîte>/<dossier Maildir ou cur|new>/...
++        folder = sub[1:] if sub.startswith(".") else "INBOX"
++        found.append(((f"quarantaine/{folder}" if in_quarantine else folder), raw))
++    return found
++
++
+ def delivered(mailbox, marker):
+-    """Contenu brut des messages livrés dans `mailbox` contenant `marker`."""
+-    files = subprocess.run(
+-        ["docker", "exec", "mailu-imap-1", "sh", "-c",
+-         f"grep -l '{marker}' /mail/{mailbox}/new/* /mail/{mailbox}/cur/* 2>/dev/null"],
+-        capture_output=True, text=True,
+-    ).stdout.split()
+-    return [subprocess.run(["docker", "exec", "mailu-imap-1", "cat", f], capture_output=True).stdout
+-            for f in files]
++    """Contenu brut des messages livrés à `mailbox` (tous dossiers, quarantaine comprise)."""
++    return [raw for _, raw in locate(mailbox, marker)]
+ 
+ 
+ def header_block(raw):
