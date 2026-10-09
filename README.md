@@ -24,6 +24,20 @@ calcule un score de 0 à 9, 1 point par contrôle en échec :
 | N3 | 5–6 | Quarantaine hors de Mailu + alerte à l'équipe sécurité |
 | N4 | 7–9, virus ou usurpation d'un dirigeant | Quarantaine + alerte [CRITIQUE] |
 
+```mermaid
+flowchart LR
+    A[Expéditeur] --> B["front (nginx)<br/>port 25"]
+    B --> C["Postfix + Rspamd<br/>SPF, DKIM, DMARC, ClamAV"]
+    C -->|port 10035| D["Filtre de triage<br/>score sur 9, niveau N0-N4"]
+    D -->|"N0 à N2, port 10036"| E["Postfix puis Dovecot"]
+    E --> F["Boîte de réception<br/>N1 : bandeau, N2 : dossier Suspect"]
+    D -->|N3, N4| G["Quarantaine hors de Mailu"]
+    D -->|N3, N4| H["Alerte à l'équipe sécurité"]
+    D --> I[("Base des décisions")]
+    I --> J["Grafana"]
+    G --> K["Outil de quarantaine"]
+```
+
 Les messages N0 à N2 sont réinjectés dans Postfix (port 10036). Les N3 et N4 sont conservés dans un
 stockage séparé de Mailu et traités dans un outil web de quarantaine (libérer, confirmer, supprimer).
 Chaque décision est enregistrée dans une base PostgreSQL (métadonnées uniquement, jamais le contenu)
@@ -58,7 +72,44 @@ règles fixes et listes modifiables.
 
 ## Installation
 
-Toutes les commandes se lancent depuis le dossier du dépôt. Celles qui touchent `data/` demandent `sudo`.
+### Vue d'ensemble
+
+L'installation suit l'ordre dans lequel le système a été construit : d'abord la plateforme Docker et les
+images de Mailu, ensuite la configuration de Mailu, enfin le système de triage, qui se greffe dessus.
+
+| Étape | Ce qu'on fait | Résultat |
+| --- | --- | --- |
+| 0 | Installer Docker | `docker compose version` répond |
+| 1 | Récupérer le code | Le dossier `triage-emails-mailu` |
+| 2 | Télécharger les images de Mailu | 10 images téléchargées (8 de Mailu, Redis, ClamAV) + `alpine` |
+| 3 | Configurer Mailu | `mailu.env` avec sa clé secrète, certificat TLS dans `certs/` |
+| 4 | Préparer le triage | Mots de passe dans `triage/secrets/`, dossiers de données dans `data/` |
+| 5 | Construire les images du triage | 4 images `mailu-triage*` construites sur la machine |
+| 6 | Démarrer l'ensemble | 14 conteneurs en service (10 de Mailu, 4 du triage) |
+| 7 | Créer les comptes de messagerie | Comptes administrateurs, comptes de test, alias des alertes |
+| 8 | Rendre le serveur joignable | Le webmail s'ouvre depuis le poste client |
+
+Toutes les commandes se lancent depuis le dossier du dépôt, sauf l'étape 0. Celles qui touchent `data/`
+demandent `sudo`.
+
+### 0. Installer Docker
+
+Sur Debian ou Kali Linux :
+
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose docker-buildx git openssl python3-venv
+sudo usermod -aG docker "$USER"
+```
+
+Fermer la session puis se reconnecter, pour que le groupe `docker` soit pris en compte. Vérifier :
+
+```bash
+docker compose version
+```
+
+Sur une autre distribution, suivre la [documentation officielle de Docker](https://docs.docker.com/engine/install/)
+(paquets `docker-ce` et `docker-compose-plugin`).
 
 ### 1. Récupérer le code
 
@@ -67,7 +118,30 @@ git clone https://github.com/marielle-dotcom/triage-emails-mailu.git
 cd triage-emails-mailu
 ```
 
-### 2. Configurer Mailu
+### 2. Télécharger les images de Mailu
+
+Mailu est livré sous forme d'images prêtes à l'emploi : on les télécharge, sans les modifier.
+
+```bash
+docker compose pull --ignore-buildable
+docker pull alpine:latest
+```
+
+La première commande télécharge les 10 images listées dans `docker-compose.yml` : les 8 images de Mailu
+2024.06 depuis `ghcr.io` (`nginx`, `unbound`, `admin`, `dovecot`, `postfix`, `oletools`, `rspamd`,
+`webmail`), `redis:alpine` et `clamav/clamav-debian:1.4`. L'option `--ignore-buildable` écarte les
+4 images du triage, qui n'existent sur aucun registre : elles sont construites à l'étape 5. La seconde
+commande télécharge `alpine`, l'image de base des 4 images du triage.
+
+Vérifier :
+
+```bash
+docker images
+```
+
+### 3. Configurer Mailu
+
+Fichier de configuration et clé secrète :
 
 ```bash
 cp mailu.env.exemple mailu.env
@@ -78,9 +152,8 @@ chmod 600 mailu.env
 Pour un autre domaine que `anac.lab`, modifier aussi `DOMAIN`, `HOSTNAMES` et `WEBSITE` dans `mailu.env`,
 ainsi que les adresses `@anac.lab` de `docker-compose.yml` (service `triage-ui`).
 
-### 3. Créer le certificat TLS
-
-Certificat autosigné pour le laboratoire ; en production, utiliser un certificat d'une autorité reconnue.
+Certificat TLS, autosigné pour le laboratoire (en production, utiliser un certificat d'une autorité
+reconnue) :
 
 ```bash
 mkdir -p certs
@@ -90,20 +163,21 @@ openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
 chmod 600 certs/key.pem
 ```
 
-### 4. Générer les secrets du triage
+Les ajustements de Mailu nécessaires au triage sont déjà dans le dépôt (`overrides/`) : Mailu les lit
+au démarrage.
+
+### 4. Préparer le triage
+
+Mots de passe de la base, de l'outil de quarantaine et de Grafana, écrits dans `triage/secrets/`
+(droits 600). Le script ne remplace jamais un fichier existant.
 
 ```bash
 mkdir -p triage/secrets
 sh triage/outils/generer_secrets.sh
 ```
 
-Le script crée les mots de passe de la base, de l'outil de quarantaine et de Grafana dans
-`triage/secrets/` (droits 600). Il ne remplace jamais un fichier existant.
-
-### 5. Préparer les dossiers de données
-
-Chaque conteneur écrit sous son propre utilisateur. Sans cette étape, Docker crée les dossiers au nom de
-`root` : le filtre ne peut pas écrire la quarantaine et Grafana ne démarre pas.
+Dossiers de données. Chaque conteneur écrit sous son propre utilisateur ; sans cette étape, Docker crée
+les dossiers au nom de `root` : le filtre ne peut pas écrire la quarantaine et Grafana ne démarre pas.
 
 ```bash
 sudo mkdir -p data/quarantaine data/triage-spool data/clamav data/grafana
@@ -113,10 +187,21 @@ sudo chown 100:101 data/grafana                           # Grafana (paquet Alpi
 sudo chmod 700 data/quarantaine data/triage-spool data/grafana
 ```
 
-### 6. Construire et démarrer
+### 5. Construire les images du triage
 
 ```bash
-docker compose up -d --build
+docker compose build
+```
+
+Construit, à partir de `alpine` et des dépôts Alpine et PyPI, les 4 images du triage :
+`mailu-triage:scenario-a` (filtre), `mailu-triage-db:etape5` (base), `mailu-triage-ui:session` (outil de
+quarantaine) et `mailu-triage-grafana:etape5` (tableau de bord).
+
+### 6. Démarrer l'ensemble
+
+```bash
+docker compose up -d
+docker compose ps
 ```
 
 Le premier démarrage dure plusieurs minutes : ClamAV télécharge ses signatures avant de passer à l'état
